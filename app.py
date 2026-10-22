@@ -1,12 +1,12 @@
 import os
 import json
+import asyncio
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, Response
-import requests
+from playwright.async_api import async_playwright
 
 app = Flask(__name__)
 
-# Sunucu RAM Veritabanı
 RAM_DB = {
     "users": {},
     "messages": []
@@ -73,48 +73,45 @@ def messages_handler():
         RAM_DB["messages"].append(msg_obj)
         return jsonify({"success": True, "message": msg_obj})
 
+async def fetch_page_screenshot(target_url):
+    async with async_playwright() as p:
+        # Mobil cihaz ekranını simüle eden sanal tarayıcı
+        browser = await p.chromium.launch(headless=True)
+        context = await browser.new_context(
+            viewport={"width": 360, "height": 640},
+            user_agent="Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1"
+        )
+        page = await context.new_page()
+        try:
+            await page.goto(target_url, wait_until="networkidle", timeout=15000)
+        except Exception:
+            pass # Zaman aşımında yine de yüklenen kadarını al
+            
+        content = await page.content()
+        await browser.close()
+        return content
+
 @app.route("/proxy")
 def proxy():
     target_url = request.args.get("url", "").strip()
     if not target_url:
-        return "<div style='color:white;padding:10px;font-family:sans-serif;'>URL girin.</div>", 400
+        return "<div style='color:white;padding:10px;'>URL girin.</div>", 400
 
     if not target_url.startswith("http://") and not target_url.startswith("https://"):
-        if "." not in target_url:
-            target_url = f"https://m.{target_url}.com"
-        else:
-            target_url = f"https://{target_url}"
+        target_url = f"https://m.{target_url}.com" if "." not in target_url else f"https://{target_url}"
 
     try:
-        # Mobil cihaz maskelemesi (iPhone Safari User-Agent)
-        headers = {
-            "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7"
-        }
-        resp = requests.get(target_url, headers=headers, timeout=15, allow_redirects=True)
+        html = asyncio.run(fetch_page_screenshot(target_url))
+        base_tag = f'<base href="{target_url}"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">'
         
-        content_type = resp.headers.get("Content-Type", "text/html")
-        
-        # Yanıttan engelleyici güvenlik başlıklarını temizleme
-        response_headers = []
-        for key, val in resp.headers.items():
-            if key.lower() not in ["x-frame-options", "content-security-policy", "transfer-encoding", "content-encoding"]:
-                response_headers.append((key, val))
-
-        if "text/html" in content_type:
-            html = resp.text
-            # Saatin ekranına sığacak şekilde viewport ve base yönlendirmesi enjekte etme
-            base_tag = f'<base href="{target_url}"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">'
-            if "<head>" in html:
-                html = html.replace("<head>", f"<head>{base_tag}", 1)
-            else:
-                html = base_tag + html
-            return Response(html, status=resp.status_code, headers=response_headers, content_type="text/html")
-
-        return Response(resp.content, status=resp.status_code, headers=response_headers, content_type=content_type)
+        if "<head>" in html:
+            html = html.replace("<head>", f"<head>{base_tag}", 1)
+        else:
+            html = base_tag + html
+            
+        return Response(html, content_type="text/html")
     except Exception as e:
-        return f"<div style='color:red;padding:10px;font-family:sans-serif;background:#111;font-size:12px;'><b>Proxy Hatası:</b> {str(e)}</div>", 500
+        return f"<div style='color:red;padding:10px;background:#111;'><b>Sanal Tarayıcı Hatası:</b> {str(e)}</div>", 500
 
 @app.route("/api/admin/export", methods=["GET"])
 def admin_export():
