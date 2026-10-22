@@ -2,40 +2,37 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web OS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Watch OS</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background: #0f0f12; color: #fff; padding: 10px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
+        body { background: #000; color: #fff; padding: 4px; display: flex; flex-direction: column; align-items: center; }
         
-        .card { background: #1a1a24; border: 1px solid #2d2d3f; border-radius: 12px; width: 100%; max-width: 500px; padding: 12px; margin-bottom: 12px; }
-        h2 { font-size: 1rem; color: #00d2ff; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .card { background: #111; border: 1px solid #222; border-radius: 8px; width: 100%; max-width: 360px; padding: 8px; margin-bottom: 8px; }
+        h2 { font-size: 0.85rem; color: #00d2ff; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
         
-        input, select, button { background: #252538; border: 1px solid #3d3d5c; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; outline: none; }
-        input { width: 100%; margin-bottom: 8px; }
+        input, select, button { background: #222; border: 1px solid #333; color: #fff; padding: 6px; border-radius: 4px; font-size: 0.75rem; outline: none; }
+        input { width: 100%; margin-bottom: 6px; }
         button { background: #007aff; border: none; font-weight: bold; cursor: pointer; width: 100%; }
-        button:hover { opacity: 0.9; }
 
         /* Login Screen */
-        #login-screen { position: fixed; inset: 0; background: #0f0f12; z-index: 999; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .login-box { background: #1a1a24; border: 1px solid #2d2d3f; padding: 20px; border-radius: 12px; width: 100%; max-width: 320px; text-align: center; }
+        #login-screen { position: fixed; inset: 0; background: #000; z-index: 999; display: flex; justify-content: center; align-items: center; padding: 10px; }
+        .login-box { background: #111; border: 1px solid #222; padding: 14px; border-radius: 8px; width: 100%; max-width: 280px; text-align: center; }
 
         /* App 1: DM */
-        .chat-header { display: flex; gap: 8px; margin-bottom: 8px; }
-        .chat-box { height: 160px; overflow-y: auto; background: #0f0f12; border: 1px solid #252538; border-radius: 6px; padding: 8px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px; }
-        .msg { background: #252538; padding: 6px 10px; border-radius: 8px; font-size: 0.8rem; max-width: 85%; }
+        .chat-box { height: 130px; overflow-y: auto; background: #050505; border: 1px solid #222; border-radius: 4px; padding: 6px; margin-bottom: 6px; display: flex; flex-direction: column; gap: 4px; }
+        .msg { background: #222; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; max-width: 90%; }
         .msg.me { background: #0055ff; align-self: flex-end; }
-        .msg-meta { font-size: 0.65rem; opacity: 0.6; margin-bottom: 2px; }
+        .msg-meta { font-size: 0.55rem; opacity: 0.6; margin-bottom: 2px; }
 
-        /* App 2: ProxWeb */
-        .browser-bar { display: flex; gap: 6px; margin-bottom: 8px; }
+        /* App 2: ProxWeb (Watch Fit) */
+        .browser-bar { display: flex; gap: 4px; margin-bottom: 6px; }
         .browser-bar input { margin-bottom: 0; }
-        .browser-bar button { width: auto; padding: 0 16px; }
-        iframe { width: 100%; height: 320px; border: 1px solid #2d2d3f; border-radius: 6px; background: #fff; }
+        .browser-bar button { width: auto; padding: 0 10px; }
+        iframe { width: 100%; height: 260px; border: 1px solid #222; border-radius: 4px; background: #fff; }
 
-        /* Admin Controls */
-        .admin-bar { display: flex; gap: 6px; margin-top: 6px; }
-        .admin-bar button { background: #333; font-size: 0.75rem; }
+        .admin-bar { display: flex; gap: 4px; margin-top: 4px; }
+        .admin-bar button { background: #333; font-size: 0.65rem; }
     </style>
 </head>
 <body>
@@ -43,53 +40,48 @@
     <!-- GİRİŞ EKRANI -->
     <div id="login-screen">
         <div class="login-box">
-            <h3 style="margin-bottom: 12px; color: #00d2ff;">Web OS Giriş</h3>
-            <input type="text" id="login-username" placeholder="Cihaz / Kullanıcı Adı">
-            <input type="password" id="login-password" placeholder="Şifre (Admin için: 456456456)">
-            <button onclick="doLogin()">Giriş Yap</button>
+            <h3 style="margin-bottom: 8px; color: #00d2ff; font-size: 0.9rem;">Saat Giriş</h3>
+            <input type="text" id="login-username" placeholder="Cihaz Adı">
+            <input type="password" id="login-password" placeholder="Şifre (Admin: 456456456)">
+            <button onclick="doLogin()">Giriş</button>
         </div>
     </div>
 
-    <!-- MASAÜSTÜ / UYGULAMALAR -->
-    <div id="app-content" style="display: none; width: 100%; max-width: 500px;">
+    <!-- MASAÜSTÜ -->
+    <div id="app-content" style="display: none; width: 100%; max-width: 360px;">
         
-        <!-- ÜST BİLGİ -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <span id="user-badge" style="font-size: 0.8rem; color: #aaa;"></span>
-            <span id="role-badge" style="font-size: 0.7rem; background: #0055ff; padding: 2px 8px; border-radius: 10px;"></span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.7rem;">
+            <span id="user-badge" style="color: #aaa;"></span>
+            <span id="role-badge" style="background: #0055ff; padding: 1px 6px; border-radius: 6px;"></span>
         </div>
 
-        <!-- UYGULAMA 1: DM SOHBET -->
+        <!-- DM -->
         <div class="card">
-            <h2>💬 DM Mesajlaşma <button onclick="loadUsers()" style="width:auto; padding:2px 8px; font-size:0.7rem; background:#333;">Yenile</button></h2>
-            <div class="chat-header">
-                <select id="chat-recipient" style="width: 100%;">
-                    <option value="ALL">Herkes (Genel)</option>
-                </select>
-            </div>
+            <h2>💬 DM <button onclick="loadUsers()" style="width:auto; padding:1px 6px; font-size:0.6rem; background:#333;">Yenile</button></h2>
+            <select id="chat-recipient" style="width: 100%; margin-bottom: 6px;"></select>
             <div class="chat-box" id="chat-box"></div>
-            <div style="display: flex; gap: 6px;">
-                <input type="text" id="chat-input" placeholder="Mesaj yazın..." style="margin-bottom: 0;" onkeypress="if(event.key==='Enter') sendMessage()">
-                <button onclick="sendMessage()" style="width: 70px;">Gönder</button>
+            <div style="display: flex; gap: 4px;">
+                <input type="text" id="chat-input" placeholder="Mesaj..." style="margin-bottom: 0;" onkeypress="if(event.key==='Enter') sendMessage()">
+                <button onclick="sendMessage()" style="width: 50px;">At</button>
             </div>
         </div>
 
-        <!-- UYGULAMA 2: PROXWEB -->
+        <!-- PROXWEB -->
         <div class="card">
-            <h2>🌐 ProxWeb (Sanal Tarayıcı)</h2>
+            <h2>🌐 ProxWeb</h2>
             <div class="browser-bar">
-                <input type="text" id="proxy-url" placeholder="google.com veya URL girin..." onkeypress="if(event.key==='Enter') loadProxy()">
+                <input type="text" id="proxy-url" placeholder="m.instagram.com" onkeypress="if(event.key==='Enter') loadProxy()">
                 <button onclick="loadProxy()">Git</button>
             </div>
             <iframe id="proxy-frame" src="about:blank"></iframe>
         </div>
 
-        <!-- ADMIN PANELİ (SADECE ADMİNE GÖRÜNÜR) -->
+        <!-- ADMIN -->
         <div id="admin-panel" class="card" style="display: none; border-color: #ff9500;">
-            <h2 style="color: #ff9500;">⚙️ Super Admin Paneli</h2>
+            <h2 style="color: #ff9500;">⚙️ Admin</h2>
             <div class="admin-bar">
-                <button onclick="exportJSON()">RAM JSON İndir</button>
-                <button onclick="document.getElementById('import-file').click()">RAM JSON Yükle</button>
+                <button onclick="exportJSON()">JSON İndir</button>
+                <button onclick="document.getElementById('import-file').click()">JSON Yükle</button>
                 <input type="file" id="import-file" style="display: none;" onchange="importJSON(this)">
             </div>
         </div>
@@ -104,10 +96,7 @@
             const username = document.getElementById("login-username").value.trim();
             const password = document.getElementById("login-password").value.trim();
 
-            if (!username) {
-                alert("Lütfen kullanıcı adı girin.");
-                return;
-            }
+            if (!username) return alert("İsim girin.");
 
             const res = await fetch("/api/login", {
                 method: "POST",
@@ -133,7 +122,7 @@
                 loadMessages();
                 setInterval(loadMessages, 3000);
             } else {
-                alert(data.error || "Giriş başarısız.");
+                alert("Giriş hatası.");
             }
         }
 
@@ -141,10 +130,9 @@
             const res = await fetch("/api/users");
             const users = await res.json();
             const select = document.getElementById("chat-recipient");
-            
             const currentVal = select.value;
-            select.innerHTML = '<option value="ALL">Herkes (Genel)</option>';
             
+            select.innerHTML = '<option value="ALL">Herkes (Genel)</option>';
             users.forEach(u => {
                 if (u !== currentUser) {
                     const opt = document.createElement("option");
@@ -192,7 +180,7 @@
         }
 
         function loadProxy() {
-            const url = document.getElementById("proxy-url").value.trim();
+            let url = document.getElementById("proxy-url").value.trim();
             if (url) {
                 document.getElementById("proxy-frame").src = `/proxy?url=${encodeURIComponent(url)}`;
             }
