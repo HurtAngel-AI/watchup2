@@ -78,12 +78,18 @@ def messages_handler():
 async def fetch_page_screenshot(target_url):
     async with async_playwright() as p:
         try:
-            browser = await p.chromium.launch(headless=True)
+            browser = await p.chromium.launch(
+                headless=True,
+                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+            )
         except Exception:
-            # Tarayıcı binary'si bulunamazsa anında indirir
+            import subprocess
+            # Sadece chromium indir, sistem yetkisi isteyen install-deps ÇALIŞTIRMA
             subprocess.run(["playwright", "install", "chromium"], check=True)
-            subprocess.run(["playwright", "install-deps"], check=True)
-            browser = await p.chromium.launch(headless=True)
+            browser = await p.chromium.launch(
+                headless=True,
+                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+            )
 
         context = await browser.new_context(
             viewport={"width": 360, "height": 640},
@@ -91,7 +97,7 @@ async def fetch_page_screenshot(target_url):
         )
         page = await context.new_page()
         try:
-            await page.goto(target_url, wait_until="networkidle", timeout=15000)
+            await page.goto(target_url, wait_until="domcontentloaded", timeout=15000)
         except Exception:
             pass
             
