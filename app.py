@@ -1,6 +1,7 @@
 import os
 import json
 import asyncio
+import subprocess
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, Response
 from playwright.async_api import async_playwright
@@ -73,10 +74,17 @@ def messages_handler():
         RAM_DB["messages"].append(msg_obj)
         return jsonify({"success": True, "message": msg_obj})
 
+# --- BURA: PLAYWRIGHT SÜRÜCÜSÜ VE OTOMATİK İNDİRME KONTROLÜ ---
 async def fetch_page_screenshot(target_url):
     async with async_playwright() as p:
-        # Mobil cihaz ekranını simüle eden sanal tarayıcı
-        browser = await p.chromium.launch(headless=True)
+        try:
+            browser = await p.chromium.launch(headless=True)
+        except Exception:
+            # Tarayıcı binary'si bulunamazsa anında indirir
+            subprocess.run(["playwright", "install", "chromium"], check=True)
+            subprocess.run(["playwright", "install-deps"], check=True)
+            browser = await p.chromium.launch(headless=True)
+
         context = await browser.new_context(
             viewport={"width": 360, "height": 640},
             user_agent="Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1"
@@ -85,7 +93,7 @@ async def fetch_page_screenshot(target_url):
         try:
             await page.goto(target_url, wait_until="networkidle", timeout=15000)
         except Exception:
-            pass # Zaman aşımında yine de yüklenen kadarını al
+            pass
             
         content = await page.content()
         await browser.close()
